@@ -3,8 +3,66 @@ import { GameState, GameQuestion } from './types';
 import * as GeminiService from './services/geminiService';
 import GameCard from './components/GameCard';
 import FeedbackOverlay from './components/FeedbackOverlay';
+import { 
+  ThemeProvider, 
+  createTheme, 
+  CssBaseline, 
+  Box, 
+  Typography, 
+  Button, 
+  Container, 
+  AppBar, 
+  Toolbar,
+  Chip,
+  Stack,
+  CircularProgress,
+  Paper
+} from '@mui/material';
+import { VolumeUp, Refresh, PlayArrow, Star, EmojiEvents, SportsEsports } from '@mui/icons-material';
 
 const TOTAL_ROUNDS = 5;
+
+// Create a playful custom theme
+const theme = createTheme({
+  typography: {
+    fontFamily: '"Fredoka", "Roboto", "Helvetica", "Arial", sans-serif',
+    allVariants: {
+      color: '#4B5563', // Gray-700
+    }
+  },
+  palette: {
+    primary: {
+      main: '#FF9800', // Orange
+      contrastText: '#fff',
+    },
+    secondary: {
+      main: '#4FC3F7', // Light Blue
+      contrastText: '#fff',
+    },
+    success: {
+      main: '#4CAF50',
+    },
+    background: {
+      default: '#FEF9C3',
+    }
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 50,
+          textTransform: 'none',
+          fontWeight: 700,
+          boxShadow: '0 8px 0 rgba(0,0,0,0.1)',
+          '&:active': {
+            boxShadow: '0 4px 0 rgba(0,0,0,0.1)',
+            transform: 'translateY(4px)',
+          }
+        }
+      }
+    }
+  }
+});
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(GameState.WELCOME);
@@ -24,24 +82,18 @@ const App: React.FC = () => {
     setFeedback({ show: false, correct: false });
     
     try {
-      // 1. Generate Question Logic
       const q = await GeminiService.generateGameQuestion();
       setCurrentQuestion(q);
       setIsBigLeft(Math.random() > 0.5);
 
-      // 2. Generate Audio
       const audio = await GeminiService.generateVoicePrompt(q);
       setCurrentAudio(audio);
 
-      // 3. Start Game
       setGameState(GameState.PLAYING);
-
-      // 4. Play Audio automatically
       await GeminiService.playAudio(audio);
 
     } catch (err) {
       console.error("Failed to load round", err);
-      // Fallback: If error, just retry loading
       setTimeout(loadNewRound, 1000);
     }
   }, []);
@@ -58,7 +110,6 @@ const App: React.FC = () => {
     const isTargetBig = currentQuestion.targetAttribute === 'big';
     const isCorrect = selectionIsBig === isTargetBig;
 
-    // Show feedback immediately
     setFeedback({ show: true, correct: isCorrect });
     setGameState(isCorrect ? GameState.SUCCESS : GameState.FAILURE);
 
@@ -75,7 +126,6 @@ const App: React.FC = () => {
         } catch (e) { console.error(e); }
     }
 
-    // Wait then decide: Next Round OR Game Over
     setTimeout(() => {
         if (round < TOTAL_ROUNDS) {
             setRound(prev => prev + 1);
@@ -84,7 +134,7 @@ const App: React.FC = () => {
             setGameState(GameState.GAME_OVER);
             setFeedback({ show: false, correct: false });
         }
-    }, 2500); // 2.5s delay to hear the feedback audio
+    }, 2500);
   };
 
   const replayInstruction = () => {
@@ -94,134 +144,207 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center relative bg-gradient-to-br from-yellow-100 to-orange-100 p-4 font-sans">
-      
-      {/* Header / Score - Only show during gameplay */}
-      {(gameState === GameState.PLAYING || gameState === GameState.SUCCESS || gameState === GameState.FAILURE || gameState === GameState.LOADING) && (
-        <div className="absolute top-6 left-0 right-0 flex justify-between px-8 z-20">
-            <div className="bg-white px-6 py-2 rounded-full shadow-lg text-xl font-bold text-orange-500">
-                第 {round} / {TOTAL_ROUNDS} 题
-            </div>
-            <div className="bg-white px-6 py-2 rounded-full shadow-lg text-xl font-bold text-blue-500">
-                得分: {score}
-            </div>
-            <button 
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box 
+        sx={{ 
+          minHeight: '100vh', 
+          width: '100%',
+          background: 'linear-gradient(135deg, #FEF9C3 0%, #FFEDD5 100%)', // Yellow-100 to Orange-100
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative'
+        }}
+      >
+        {/* Header / Score */}
+        {(gameState === GameState.PLAYING || gameState === GameState.SUCCESS || gameState === GameState.FAILURE || gameState === GameState.LOADING) && (
+          <AppBar position="static" color="transparent" elevation={0} sx={{ pt: 2, px: 2, zIndex: 10 }}>
+            <Toolbar sx={{ justifyContent: 'space-between' }}>
+              <Chip 
+                icon={<SportsEsports sx={{ color: 'white !important' }} />} 
+                label={`第 ${round} / ${TOTAL_ROUNDS} 题`} 
+                color="primary" 
+                sx={{ fontSize: '1.1rem', py: 2.5, px: 1, boxShadow: 3 }}
+              />
+              
+              <Chip 
+                icon={<Star sx={{ color: 'yellow !important' }} />} 
+                label={`得分: ${score}`} 
+                color="secondary" 
+                sx={{ fontSize: '1.1rem', py: 2.5, px: 1, boxShadow: 3 }}
+              />
+
+              <Button 
+                variant="contained" 
+                color="info" 
+                startIcon={<VolumeUp />} 
                 onClick={replayInstruction}
-                className="bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg transition-colors flex items-center gap-2"
-            >
-                🔊 重听
-            </button>
-        </div>
-      )}
-
-      {/* Main Content Area */}
-      <main className="w-full max-w-4xl flex flex-col items-center justify-center flex-grow z-10">
-        
-        {/* WELCOME SCREEN */}
-        {gameState === GameState.WELCOME && (
-          <div className="text-center space-y-8 animate-pop">
-            <h1 className="text-6xl md:text-8xl font-black text-orange-500 tracking-tight drop-shadow-sm">
-              大小 <span className="text-blue-500">大挑战</span>
-            </h1>
-            <p className="text-2xl text-gray-600 font-semibold">
-              学习 "大" 和 "小" 的概念
-            </p>
-            <div className="flex justify-center gap-4 text-6xl my-8">
-               <span className="animate-bounce" style={{ animationDelay: '0s' }}>🐳</span>
-               <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>🦐</span>
-            </div>
-            <button 
-              onClick={handleStart}
-              className="bg-green-500 hover:bg-green-600 text-white text-3xl font-bold py-6 px-16 rounded-full shadow-[0_8px_0_rgb(21,128,61)] active:shadow-[0_4px_0_rgb(21,128,61)] active:translate-y-1 transition-all"
-            >
-              开始游戏!
-            </button>
-          </div>
+                sx={{ borderRadius: 4, py: 1, px: 3, display: { xs: 'none', sm: 'flex' } }}
+              >
+                重听
+              </Button>
+               {/* Mobile Icon Button */}
+              <Button 
+                variant="contained" 
+                color="info" 
+                onClick={replayInstruction}
+                sx={{ borderRadius: '50%', minWidth: 48, width: 48, height: 48, display: { xs: 'flex', sm: 'none' }, p:0 }}
+              >
+                <VolumeUp />
+              </Button>
+            </Toolbar>
+          </AppBar>
         )}
 
-        {/* LOADING SCREEN */}
-        {gameState === GameState.LOADING && (
-           <div className="flex flex-col items-center animate-pulse">
-             <div className="text-6xl mb-4">🎈</div>
-             <p className="text-2xl text-gray-500 font-semibold">准备下一题...</p>
-           </div>
-        )}
+        {/* Main Content */}
+        <Container maxWidth="lg" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+          
+          {/* WELCOME SCREEN */}
+          {gameState === GameState.WELCOME && (
+            <Stack spacing={4} alignItems="center" className="animate-pop">
+              <Typography variant="h2" component="h1" fontWeight={900} sx={{ color: '#F97316', textAlign: 'center', textShadow: '2px 2px 0px white' }}>
+                大小 <Box component="span" sx={{ color: '#3B82F6' }}>大挑战</Box>
+              </Typography>
+              
+              <Typography variant="h5" sx={{ color: '#4B5563', fontWeight: 600 }}>
+                学习 "大" 和 "小" 的概念
+              </Typography>
 
-        {/* GAME OVER SCREEN */}
-        {gameState === GameState.GAME_OVER && (
-          <div className="text-center space-y-8 animate-pop bg-white/60 backdrop-blur-md p-12 rounded-3xl shadow-2xl">
-             <h2 className="text-5xl font-bold text-gray-800">游戏结束!</h2>
-             
-             <div className="text-8xl my-6">
-                {score === TOTAL_ROUNDS ? '🏆' : score >= TOTAL_ROUNDS / 2 ? '⭐' : '💪'}
-             </div>
+              <Stack direction="row" spacing={4} sx={{ fontSize: '4rem', my: 2 }}>
+                <Box component="span" sx={{ animation: 'bounce 1s infinite' }}>🐳</Box>
+                <Box component="span" sx={{ animation: 'bounce 1s infinite', animationDelay: '0.2s' }}>🦐</Box>
+              </Stack>
 
-             <div className="text-3xl font-bold text-gray-700">
-                你的得分: <span className="text-green-600 text-5xl">{score}</span> / {TOTAL_ROUNDS}
-             </div>
+              <Button 
+                variant="contained" 
+                color="success" 
+                size="large"
+                startIcon={<PlayArrow sx={{ fontSize: 40 }} />}
+                onClick={handleStart}
+                sx={{ fontSize: '2rem', py: 2, px: 6, borderRadius: 8 }}
+              >
+                开始游戏!
+              </Button>
+            </Stack>
+          )}
 
-             <p className="text-xl text-gray-500">
-                {score === TOTAL_ROUNDS ? '哇！你是大小专家！' : '做得很棒，继续加油！'}
-             </p>
+          {/* LOADING SCREEN */}
+          {gameState === GameState.LOADING && (
+             <Stack alignItems="center" spacing={2}>
+               <CircularProgress size={80} thickness={5} sx={{ color: '#F97316' }} />
+               <Typography variant="h4" color="textSecondary" fontWeight="bold">
+                 准备下一题...
+               </Typography>
+             </Stack>
+          )}
 
-             <button 
-              onClick={handleStart}
-              className="mt-8 bg-blue-500 hover:bg-blue-600 text-white text-2xl font-bold py-4 px-12 rounded-full shadow-[0_6px_0_rgb(37,99,235)] active:shadow-[0_3px_0_rgb(37,99,235)] active:translate-y-1 transition-all"
+          {/* GAME OVER SCREEN */}
+          {gameState === GameState.GAME_OVER && (
+            <Paper 
+              elevation={6}
+              sx={{ 
+                p: 6, 
+                borderRadius: 8, 
+                textAlign: 'center', 
+                background: 'rgba(255,255,255,0.8)', 
+                backdropFilter: 'blur(10px)',
+                maxWidth: 600,
+                width: '100%'
+              }}
+              className="animate-pop"
             >
-              再玩一次
-            </button>
-          </div>
-        )}
+               <Typography variant="h3" fontWeight={800} gutterBottom>游戏结束!</Typography>
+               
+               <Typography sx={{ fontSize: '6rem', my: 2 }}>
+                  {score === TOTAL_ROUNDS ? '🏆' : score >= TOTAL_ROUNDS / 2 ? '⭐' : '💪'}
+               </Typography>
 
-        {/* PLAYING SCREEN */}
-        {(gameState === GameState.PLAYING || gameState === GameState.SUCCESS || gameState === GameState.FAILURE) && currentQuestion && (
-          <div className="w-full">
-            
-            {/* Instruction Text (Visual Aid) */}
-            <div className="text-center mb-12">
-               <h2 className="text-4xl md:text-5xl font-bold text-gray-700">
+               <Typography variant="h4" fontWeight="bold" gutterBottom>
+                  你的得分: <Box component="span" sx={{ color: 'green', fontSize: '1.2em' }}>{score}</Box> / {TOTAL_ROUNDS}
+               </Typography>
+
+               <Typography variant="h6" color="textSecondary" paragraph>
+                  {score === TOTAL_ROUNDS ? '哇！你是大小专家！' : '做得很棒，继续加油！'}
+               </Typography>
+
+               <Button 
+                variant="contained" 
+                color="primary" 
+                size="large"
+                startIcon={<Refresh />}
+                onClick={handleStart}
+                sx={{ mt: 4, fontSize: '1.5rem', py: 1.5, px: 6 }}
+              >
+                再玩一次
+              </Button>
+            </Paper>
+          )}
+
+          {/* PLAYING SCREEN */}
+          {(gameState === GameState.PLAYING || gameState === GameState.SUCCESS || gameState === GameState.FAILURE) && currentQuestion && (
+            <Box sx={{ width: '100%', textAlign: 'center' }}>
+              
+              <Typography variant="h3" fontWeight="bold" sx={{ mb: 6, color: '#374151' }}>
                  请找出
-                 <span className={currentQuestion.targetAttribute === 'big' ? "text-6xl text-purple-600 mx-3" : "text-4xl text-blue-500 mx-3"}>
+                 <Box component="span" sx={{ 
+                   fontSize: currentQuestion.targetAttribute === 'big' ? '1.3em' : '1em',
+                   color: currentQuestion.targetAttribute === 'big' ? '#9333EA' : '#3B82F6',
+                   mx: 1.5,
+                   display: 'inline-block',
+                   transform: currentQuestion.targetAttribute === 'big' ? 'scale(1.1)' : 'scale(0.9)'
+                 }}>
                     {currentQuestion.targetAttribute === 'big' ? '大' : '小'}
-                 </span> 
+                 </Box> 
                  的 {currentQuestion.objectName}
-               </h2>
-            </div>
+              </Typography>
 
-            {/* Cards Container */}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-24">
-                {/* Left Card */}
-                <div className="flex flex-col items-center gap-4">
-                    <GameCard 
-                        emoji={currentQuestion.emoji}
-                        isBig={isBigLeft}
-                        color={currentQuestion.colorHex}
-                        onClick={() => handleCardClick(isBigLeft)}
-                        disabled={gameState !== GameState.PLAYING}
-                    />
-                </div>
+              <Stack 
+                direction={{ xs: 'column', md: 'row' }} 
+                spacing={{ xs: 4, md: 10 }} 
+                justifyContent="center" 
+                alignItems="center"
+              >
+                  {/* Cards */}
+                  <GameCard 
+                      emoji={currentQuestion.emoji}
+                      isBig={isBigLeft}
+                      color={currentQuestion.colorHex}
+                      onClick={() => handleCardClick(isBigLeft)}
+                      disabled={gameState !== GameState.PLAYING}
+                  />
 
-                {/* Right Card */}
-                <div className="flex flex-col items-center gap-4">
-                    <GameCard 
-                        emoji={currentQuestion.emoji}
-                        isBig={!isBigLeft}
-                        color={currentQuestion.colorHex}
-                        onClick={() => handleCardClick(!isBigLeft)}
-                        disabled={gameState !== GameState.PLAYING}
-                    />
-                </div>
-            </div>
+                  <GameCard 
+                      emoji={currentQuestion.emoji}
+                      isBig={!isBigLeft}
+                      color={currentQuestion.colorHex}
+                      onClick={() => handleCardClick(!isBigLeft)}
+                      disabled={gameState !== GameState.PLAYING}
+                  />
+              </Stack>
+            </Box>
+          )}
 
-          </div>
-        )}
-      </main>
+        </Container>
 
-      <FeedbackOverlay show={feedback.show} isCorrect={feedback.correct} />
+        <FeedbackOverlay show={feedback.show} isCorrect={feedback.correct} />
 
-      {/* Footer Decoration */}
-      <div className="fixed bottom-0 left-0 w-full h-12 bg-green-400 opacity-20 rounded-t-[50%] pointer-events-none"></div>
-    </div>
+        {/* Footer Decoration */}
+        <Box sx={{ 
+          position: 'fixed', 
+          bottom: 0, 
+          left: 0, 
+          width: '100%', 
+          height: 60, 
+          bgcolor: '#4CAF50', 
+          opacity: 0.2, 
+          borderTopLeftRadius: '50%', 
+          borderTopRightRadius: '50%', 
+          pointerEvents: 'none',
+          zIndex: 0 
+        }} />
+
+      </Box>
+    </ThemeProvider>
   );
 };
 

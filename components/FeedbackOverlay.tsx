@@ -1,4 +1,5 @@
 import React from 'react';
+import { Backdrop, Typography, Box } from '@mui/material';
 
 interface FeedbackOverlayProps {
   isCorrect: boolean;
@@ -6,23 +7,36 @@ interface FeedbackOverlayProps {
 }
 
 const FeedbackOverlay: React.FC<FeedbackOverlayProps> = ({ isCorrect, show }) => {
-  if (!show) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm animate-fade-in"></div>
-      <div className="relative z-10 animate-bounce">
+    <Backdrop
+      sx={{
+        color: '#fff',
+        zIndex: (theme) => theme.zIndex.drawer + 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(4px)'
+      }}
+      open={show}
+    >
+      <Box
+        className="animate-pop"
+        sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            animation: 'bounce 1s infinite'
+        }}
+      >
         {isCorrect ? (
-          <div className="text-9xl filter drop-shadow-2xl">
+          <Typography sx={{ fontSize: '10rem', filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.8))' }}>
             🌟
-          </div>
+          </Typography>
         ) : (
-          <div className="text-9xl filter drop-shadow-2xl opacity-90">
+          <Typography sx={{ fontSize: '10rem', filter: 'drop-shadow(0 0 20px rgba(0,0,0,0.5))', opacity: 0.9 }}>
             ❌
-          </div>
+          </Typography>
         )}
-      </div>
-    </div>
+      </Box>
+    </Backdrop>
   );
 };
 

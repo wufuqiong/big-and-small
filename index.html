@@ -4,30 +4,33 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Little Giants</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     <style>
       body {
+        margin: 0;
+        padding: 0;
         font-family: 'Fredoka', sans-serif;
-        background-color: #FEF9C3; /* Yellow-100 */
-        overflow: hidden; /* Prevent scrolling for app-like feel */
+        background-color: #FEF9C3;
+        overflow: hidden;
         touch-action: manipulation;
       }
-      .blob-shape {
-        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-        animation: blob-bounce 6s ease-in-out infinite;
-      }
+      /* Custom animations preserved for use with MUI components via sx or className */
       @keyframes blob-bounce {
         0% { transform: scale(1); }
         50% { transform: scale(1.05); }
         100% { transform: scale(1); }
       }
-      .wiggle:hover {
-        animation: wiggle 0.5s ease-in-out infinite;
+      .blob-shape {
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        animation: blob-bounce 6s ease-in-out infinite;
       }
       @keyframes wiggle {
         0%, 100% { transform: rotate(-3deg); }
         50% { transform: rotate(3deg); }
+      }
+      .wiggle:hover {
+        animation: wiggle 0.5s ease-in-out infinite;
       }
       @keyframes pop-in {
         0% { transform: scale(0); opacity: 0; }
@@ -41,10 +44,17 @@
   <script type="importmap">
 {
   "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+    "@mui/material": "https://aistudiocdn.com/@mui/material@^6.1.6/index.js",
+    "@mui/material/": "https://aistudiocdn.com/@mui/material@^6.1.6/",
+    "@mui/icons-material": "https://aistudiocdn.com/@mui/icons-material@^6.1.6/index.js",
+    "@mui/icons-material/": "https://aistudiocdn.com/@mui/icons-material@^6.1.6/",
+    "@emotion/react": "https://aistudiocdn.com/@emotion/react@^11.13.3",
+    "@emotion/styled": "https://aistudiocdn.com/@emotion/styled@^11.13.0"
   }
 }
 </script>

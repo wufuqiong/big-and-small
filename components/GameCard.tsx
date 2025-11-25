@@ -1,4 +1,5 @@
 import React from 'react';
+import { Paper, ButtonBase, Typography, Box } from '@mui/material';
 
 interface GameCardProps {
   emoji: string;
@@ -9,35 +10,82 @@ interface GameCardProps {
 }
 
 const GameCard: React.FC<GameCardProps> = ({ emoji, isBig, color, onClick, disabled }) => {
-  // We use CSS transform scale to represent size to ensure the object is identical, just larger/smaller.
-  // Base size for 'Small' is 3rem, 'Big' is 8rem visually via scaling or font-size.
-  
-  const sizeClass = isBig ? "text-9xl" : "text-5xl";
-  const containerSize = isBig ? "h-64 w-64" : "h-40 w-40";
+  // Size constants
+  const containerSize = isBig ? { width: 280, height: 280 } : { width: 160, height: 160 };
+  const fontSize = isBig ? '9rem' : '5rem';
 
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`
-        relative group transition-all duration-300 ease-in-out
-        ${containerSize}
-        flex items-center justify-center
-        rounded-3xl shadow-xl hover:shadow-2xl
-        active:scale-95
-        animate-pop
-        border-4 border-white
-        ${disabled ? 'cursor-default opacity-80' : 'cursor-pointer wiggle'}
-      `}
-      style={{ backgroundColor: color }}
+    <Paper
+      elevation={disabled ? 2 : 12}
+      sx={{
+        borderRadius: 8,
+        bgcolor: color,
+        overflow: 'hidden',
+        transition: 'all 0.3s ease-in-out',
+        border: '4px solid white',
+        opacity: disabled ? 0.8 : 1,
+        transform: disabled ? 'none' : 'scale(1)',
+        '&:hover': {
+          transform: disabled ? 'none' : 'scale(1.05) rotate(2deg)',
+          boxShadow: 20
+        },
+        ...containerSize
+      }}
     >
-      <span className={`${sizeClass} drop-shadow-md select-none filter transition-transform`}>
-        {emoji}
-      </span>
-      {/* Glossy effect */}
-      <div className="absolute top-2 right-2 w-4 h-4 bg-white opacity-40 rounded-full"></div>
-      <div className="absolute top-4 right-3 w-2 h-2 bg-white opacity-40 rounded-full"></div>
-    </button>
+      <ButtonBase
+        onClick={onClick}
+        disabled={disabled}
+        sx={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        className={!disabled ? 'animate-pop' : ''}
+      >
+        <Typography
+          variant="h1"
+          component="span"
+          sx={{
+            fontSize: fontSize,
+            filter: 'drop-shadow(0px 4px 4px rgba(0,0,0,0.15))',
+            userSelect: 'none',
+            lineHeight: 1
+          }}
+        >
+          {emoji}
+        </Typography>
+
+        {/* Glossy effect overlays */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            width: 24,
+            height: 24,
+            bgcolor: 'white',
+            opacity: 0.4,
+            borderRadius: '50%',
+            pointerEvents: 'none'
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 32,
+            right: 32,
+            width: 12,
+            height: 12,
+            bgcolor: 'white',
+            opacity: 0.4,
+            borderRadius: '50%',
+            pointerEvents: 'none'
+          }}
+        />
+      </ButtonBase>
+    </Paper>
   );
 };
 
