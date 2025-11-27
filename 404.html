@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Big and Small Game</title>
+    <script>
+      // 单页应用 404 处理
+      sessionStorage.redirect = location.href;
+      location.replace('/big-and-small/');
+    </script>
+  </head>
+  <body>
+    <!-- 如果 JavaScript 被禁用，显示提示 -->
+    <noscript>
+      <h1>页面重定向中...</h1>
+      <p>如果页面没有自动跳转，请 <a href="/big-and-small/">点击这里</a>。</p>
+    </noscript>
+  </body>
+</html>
