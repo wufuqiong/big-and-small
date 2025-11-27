@@ -1,0 +1,1 @@
+@keyframes pop{0%{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}.animate-pop{animation:pop .5s ease-out forwards}@keyframes bounce{0%,to{transform:translateY(0)}50%{transform:translateY(-20px)}}
