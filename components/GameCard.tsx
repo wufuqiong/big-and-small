@@ -2,31 +2,36 @@ import React from 'react';
 import { Paper, ButtonBase, Typography, Box } from '@mui/material';
 
 interface GameCardProps {
-  emoji: string;
-  isBig: boolean;
-  color: string;
+  object: {
+    name: string;
+    emoji: string;
+    colorHex: string;
+    isBig: boolean; // 这个物品是大还是小
+  };
   onClick: () => void;
   disabled: boolean;
 }
 
-const GameCard: React.FC<GameCardProps> = ({ emoji, isBig, color, onClick, disabled }) => {
-  // Size constants
-  const containerSize = isBig ? { width: 280, height: 280 } : { width: 160, height: 160 };
-  const fontSize = isBig ? '9rem' : '5rem';
+const GameCard: React.FC<GameCardProps> = ({ object, onClick, disabled }) => {
+  // 卡片尺寸相同
+  const containerSize = { width: 200, height: 200 };
+  
+  // 根据物品大小设置不同的字体大小
+  const fontSize = object.isBig ? '7rem' : '4rem';
+  const nameFontSize = object.isBig ? '1.5rem' : '1rem';
 
   return (
     <Paper
       elevation={disabled ? 2 : 12}
       sx={{
         borderRadius: 8,
-        bgcolor: color,
+        bgcolor: object.colorHex,
         overflow: 'hidden',
         transition: 'all 0.3s ease-in-out',
         border: '4px solid white',
         opacity: disabled ? 0.8 : 1,
-        transform: disabled ? 'none' : 'scale(1)',
         '&:hover': {
-          transform: disabled ? 'none' : 'scale(1.05) rotate(2deg)',
+          transform: disabled ? 'none' : 'scale(1.05)',
           boxShadow: 20
         },
         ...containerSize
@@ -39,6 +44,7 @@ const GameCard: React.FC<GameCardProps> = ({ emoji, isBig, color, onClick, disab
           width: '100%',
           height: '100%',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
         }}
@@ -51,13 +57,31 @@ const GameCard: React.FC<GameCardProps> = ({ emoji, isBig, color, onClick, disab
             fontSize: fontSize,
             filter: 'drop-shadow(0px 4px 4px rgba(0,0,0,0.15))',
             userSelect: 'none',
-            lineHeight: 1
+            lineHeight: 1,
+            transition: 'all 0.3s ease-in-out',
+            // 添加缩放效果，使大小差异更明显
+            transform: object.isBig ? 'scale(1.3)' : 'scale(0.8)'
           }}
         >
-          {emoji}
+          {object.emoji}
+        </Typography>
+        
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{
+            mt: 1,
+            fontSize: nameFontSize,
+            color: 'rgba(0,0,0,0.7)',
+            fontWeight: 'bold',
+            textShadow: '0 1px 2px rgba(255,255,255,0.5)',
+            transition: 'all 0.3s ease-in-out'
+          }}
+        >
+          {object.name}
         </Typography>
 
-        {/* Glossy effect overlays */}
+        {/* 光泽效果覆盖层 */}
         <Box
           sx={{
             position: 'absolute',
